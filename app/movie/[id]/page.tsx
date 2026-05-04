@@ -15,7 +15,7 @@ export default function MoviePage() {
 
   if (!data) return <p className="p-6">Loading...</p>;
 
-  const { movie, cast } = data;
+  const { movie, cast, providers } = data;
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
@@ -89,6 +89,20 @@ export default function MoviePage() {
             </div>
         </div>
 
+            {/* {providers?.results?.RO?.flatrate && (
+            <div className="mt-4">
+                <p className="font-semibold">📺 Disponibil pe:</p>
+                <div className="flex gap-2 mt-2">
+                {providers.results.RO.flatrate.map((p: any) => (
+                    <img
+                    key={p.provider_id}
+                    src={`https://image.tmdb.org/t/p/w200${p.logo_path}`}
+                    className="w-10"
+                    />
+                ))}
+                </div>
+            </div>
+            )} */}
         </div>
 
     </div>
