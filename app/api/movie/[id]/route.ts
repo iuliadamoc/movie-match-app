@@ -4,11 +4,22 @@ export async function GET(
 ) {
   const { id } = await context.params;
 
-  const res = await fetch(
+  // movie details
+  const movieRes = await fetch(
     `https://api.themoviedb.org/3/movie/${id}?api_key=${process.env.TMDB_API_KEY}`
   );
 
-  const data = await res.json();
+  const movie = await movieRes.json();
 
-  return Response.json(data);
+  // distinct request for cast 
+  const castRes = await fetch(
+    `https://api.themoviedb.org/3/movie/${id}/credits?api_key=${process.env.TMDB_API_KEY}`
+  );
+
+  const castData = await castRes.json();
+
+  return Response.json({
+    movie,
+    cast: castData.cast.slice(0, 8) // top 8 cast members
+  });
 }
