@@ -10,6 +10,8 @@ import { auth } from "@/lib/firebase";
 import ActionButton from "@/components/ui/ActionButton";
 import { Mail, Globe } from "lucide-react";
 
+import FullScreenLoader from "@/components/ui/FullScreenLoader";
+
 export default function MoviePage() {
     const params = useParams();
     const router = useRouter();
@@ -40,132 +42,157 @@ export default function MoviePage() {
     }, [params.id]);
 
     if (!user || !data) {
-        return <p className="p-6">Loading...</p>;
+        return <FullScreenLoader />;
     }
 
     const { movie, cast, providers } = data;
 
     return (
         <div className="min-h-screen bg-gray-100 p-6">
-
-            {/* NAVBAR */}
             <Navbar user={user} />
 
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-6xl mx-auto space-y-6">
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-3xl shadow-[0_15px_40px_rgba(0,0,0,0.1)] p-8"
-                >
+                {/* TOP SECTION */}
+                <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
 
-                    {/* TOP */}
-                    <div className="flex gap-8">
-
-                        {/* POSTER */}
+                    {/* POSTER CARD */}
+                    <motion.div
+                        whileHover={{ scale: 1.03 }}
+                        className="bg-white rounded-2xl shadow-lg p-3"
+                    >
                         <img
                             src={
                                 movie.poster_path
                                     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
                                     : "https://via.placeholder.com/300x450"
                             }
-                            className="w-72 rounded-xl shadow"
+                            className="w-full h-[420px] object-cover rounded-xl"
                         />
+                    </motion.div>
 
-                        {/* INFO */}
-                        <div className="flex-1">
-
-                            <h1 className="text-4xl font-bold mb-2">
+                    {/* INFO CARD */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-2xl shadow-lg p-6 space-y-4"
+                    >
+                        {/* TITLE */}
+                        <div>
+                            <h1 className="text-3xl font-bold">
                                 {movie.title}
                             </h1>
 
-                            <p className="text-gray-500 mb-3">
+                            <p className="text-gray-500 text-sm mt-1">
                                 {movie.release_date?.slice(0, 4)} •{" "}
                                 {movie.genres?.map((g: any) => g.name).join(", ")}
                             </p>
+                        </div>
 
-                            <div className="flex gap-4 text-sm text-gray-600 mb-4">
-                                <span>⭐ {movie.vote_average}</span>
-                                <span>⏱️ {movie.runtime} min</span>
-                                <span>🔥 {Math.round(movie.popularity)}</span>
-                            </div>
+                        {/* STATS */}
+                        <div className="flex flex-wrap gap-2">
 
-                            <p className="text-gray-700 leading-relaxed mb-6">
-                                {movie.overview}
-                            </p>
+                            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
+                                ⭐ {movie.vote_average}
+                            </span>
 
-                            {/* BUTTONS */}
-                            <div className="flex gap-3">
+                            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
+                                ⏱️ {movie.runtime} min
+                            </span>
 
-                                <ActionButton
-                                    icon={<Mail size={16} />}
-                                    variant="primary"
-                                    onClick={() => console.log("send")}
-                                >
-                                    Send
-                                </ActionButton>
+                            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
+                                🔥 {Math.round(movie.popularity)}
+                            </span>
 
-                                <ActionButton
-                                    icon={<Globe size={16} />}
-                                    variant="secondary"
-                                    onClick={() => console.log("translate")}
-                                >
-                                    Translate
-                                </ActionButton>
+                        </div>
 
-                            </div>
+                        {/* DESCRIPTION */}
+                        <p className="text-gray-700 leading-relaxed">
+                            {movie.overview}
+                        </p>
 
-                            {/* PROVIDERS */}
-                            {providers?.flatrate && (
-                                <div className="mt-6">
-                                    <p className="font-semibold mb-2">📺 Available on</p>
+                        {/* ACTIONS */}
+                        <div className="flex gap-3 pt-2">
 
-                                    <div className="flex gap-2">
-                                        {providers.flatrate.map((p: any) => (
+                            <ActionButton
+                                icon={<Mail size={16} />}
+                                variant="primary"
+                            >
+                                Send
+                            </ActionButton>
+
+                            <ActionButton
+                                icon={<Globe size={16} />}
+                                variant="secondary"
+                            >
+                                Translate
+                            </ActionButton>
+
+                        </div>
+
+                        {/* PROVIDERS */}
+                        {providers?.flatrate && (
+                            <div className="pt-4">
+                                <p className="text-sm font-semibold mb-2">
+                                    Available on
+                                </p>
+
+                                <div className="flex gap-2 flex-wrap">
+                                    {providers.flatrate.map((p: any) => (
+                                        <div
+                                            key={p.provider_id}
+                                            className="bg-gray-100 px-3 py-1 rounded-lg flex items-center gap-2"
+                                        >
                                             <img
-                                                key={p.provider_id}
                                                 src={`https://image.tmdb.org/t/p/w200${p.logo_path}`}
-                                                className="w-10 rounded"
+                                                className="w-5 h-5 object-contain"
                                             />
-                                        ))}
-                                    </div>
+                                            <span className="text-xs font-medium">
+                                                {p.provider_name}
+                                            </span>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                        </div>
+                    </motion.div>
+                </div>
+
+                {/* CAST SECTION */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-2xl shadow-lg p-6"
+                >
+                    <h2 className="text-xl font-semibold mb-4">
+                        Main Cast
+                    </h2>
+
+                    <div className="flex gap-4 overflow-x-auto pb-2">
+
+                        {cast.map((actor: any) => (
+                            <motion.div
+                                key={actor.id}
+                                whileHover={{ scale: 1.07 }}
+                                className="min-w-[120px] bg-gray-50 rounded-xl p-2 shadow-sm"
+                            >
+                                <img
+                                    src={
+                                        actor.profile_path
+                                            ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
+                                            : "https://via.placeholder.com/150"
+                                    }
+                                    className="rounded-lg mb-2"
+                                />
+
+                                <p className="text-xs font-medium text-center">
+                                    {actor.name}
+                                </p>
+                            </motion.div>
+                        ))}
+
                     </div>
-
-                    {/* CAST */}
-                    <div className="mt-10">
-                        <h2 className="text-2xl font-semibold mb-6">
-                            Main Cast
-                        </h2>
-
-                        <div className="flex gap-6 overflow-x-auto pb-2">
-
-                            {cast.map((actor: any) => (
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    key={actor.id}
-                                    className="min-w-[120px] text-center"
-                                >
-                                    <img
-                                        src={
-                                            actor.profile_path
-                                                ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
-                                                : "https://via.placeholder.com/150"
-                                        }
-                                        className="rounded-lg mb-2 shadow"
-                                    />
-                                    <p className="text-sm font-medium">
-                                        {actor.name}
-                                    </p>
-                                </motion.div>
-                            ))}
-
-                        </div>
-                    </div>
-
                 </motion.div>
 
             </div>
