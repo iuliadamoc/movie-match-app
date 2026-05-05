@@ -1,111 +1,174 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import { motion } from "framer-motion";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+
+import ActionButton from "@/components/ui/ActionButton";
+import { Mail, Globe } from "lucide-react";
 
 export default function MoviePage() {
-  const params = useParams();
-  const [data, setData] = useState<any>(null);
+    const params = useParams();
+    const router = useRouter();
 
-  useEffect(() => {
-    fetch(`/api/movie/${params.id}`)
-      .then((res) => res.json())
-      .then((data) => setData(data));
-  }, []);
+    const [user, setUser] = useState<any>(null);
+    const [data, setData] = useState<any>(null);
 
-  if (!data) return <p className="p-6">Loading...</p>;
+    // 🔐 AUTH (FIX BUG)
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (u) => {
+            if (!u) {
+                router.push("/login");
+            } else {
+                setUser(u);
+            }
+        });
 
-  const { movie, cast, providers } = data;
+        return () => unsubscribe();
+    }, []);
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
-    <div className="max-w-6xl w-full">
+    // 🎬 FETCH MOVIE
+    useEffect(() => {
+        if (!params.id) return;
 
-        {/* MOVIE DETAILS */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        fetch(`/api/movie/${params.id}`)
+            .then((res) => res.json())
+            .then((data) => setData(data));
+    }, [params.id]);
 
-        {/* TOP SECTION */}
-        <div className="flex gap-8 p-6">
+    if (!user || !data) {
+        return <p className="p-6">Loading...</p>;
+    }
 
-            {/* POSTER */}
-            <img
-            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-            className="w-72 rounded-lg shadow-md"
-            />
+    const { movie, cast, providers } = data;
 
-            {/* INFO */}
-            <div className="flex-1 flex flex-col justify-center">
+    return (
+        <div className="min-h-screen bg-gray-100 p-6">
 
-            <h1 className="text-4xl font-bold mb-2">
-                {movie.title} ({movie.release_date?.slice(0, 4)})
-            </h1>
+            {/* NAVBAR */}
+            <Navbar user={user} />
 
-            <p className="text-gray-500 mb-2">
-                {movie.genres?.map((g: any) => g.name).join(", ")} •{" "}
-                {movie.original_language?.toUpperCase()}
-            </p>
+            <div className="max-w-6xl mx-auto">
 
-            <p className="mb-4 text-gray-700">
-                ⭐ {movie.vote_average} / 10 • ⏱️ {movie.runtime} min • 🔥{" "}
-                {Math.round(movie.popularity)}
-            </p>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-3xl shadow-[0_15px_40px_rgba(0,0,0,0.1)] p-8"
+                >
 
-            <p className="text-gray-700 mb-6 leading-relaxed">
-                {movie.overview}
-            </p>
+                    {/* TOP */}
+                    <div className="flex gap-8">
 
-            <div className="flex gap-3">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded">
-                Translate
-                </button>
+                        {/* POSTER */}
+                        <img
+                            src={
+                                movie.poster_path
+                                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                                    : "https://via.placeholder.com/300x450"
+                            }
+                            className="w-72 rounded-xl shadow"
+                        />
 
-                <button className="bg-green-500 text-white px-4 py-2 rounded">
-                Send Email
-                </button>
-            </div>
+                        {/* INFO */}
+                        <div className="flex-1">
+
+                            <h1 className="text-4xl font-bold mb-2">
+                                {movie.title}
+                            </h1>
+
+                            <p className="text-gray-500 mb-3">
+                                {movie.release_date?.slice(0, 4)} •{" "}
+                                {movie.genres?.map((g: any) => g.name).join(", ")}
+                            </p>
+
+                            <div className="flex gap-4 text-sm text-gray-600 mb-4">
+                                <span>⭐ {movie.vote_average}</span>
+                                <span>⏱️ {movie.runtime} min</span>
+                                <span>🔥 {Math.round(movie.popularity)}</span>
+                            </div>
+
+                            <p className="text-gray-700 leading-relaxed mb-6">
+                                {movie.overview}
+                            </p>
+
+                            {/* BUTTONS */}
+                            <div className="flex gap-3">
+
+                                <ActionButton
+                                    icon={<Mail size={16} />}
+                                    variant="primary"
+                                    onClick={() => console.log("send")}
+                                >
+                                    Send
+                                </ActionButton>
+
+                                <ActionButton
+                                    icon={<Globe size={16} />}
+                                    variant="secondary"
+                                    onClick={() => console.log("translate")}
+                                >
+                                    Translate
+                                </ActionButton>
+
+                            </div>
+
+                            {/* PROVIDERS */}
+                            {providers?.flatrate && (
+                                <div className="mt-6">
+                                    <p className="font-semibold mb-2">📺 Available on</p>
+
+                                    <div className="flex gap-2">
+                                        {providers.flatrate.map((p: any) => (
+                                            <img
+                                                key={p.provider_id}
+                                                src={`https://image.tmdb.org/t/p/w200${p.logo_path}`}
+                                                className="w-10 rounded"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
+
+                    {/* CAST */}
+                    <div className="mt-10">
+                        <h2 className="text-2xl font-semibold mb-6">
+                            Main Cast
+                        </h2>
+
+                        <div className="flex gap-6 overflow-x-auto pb-2">
+
+                            {cast.map((actor: any) => (
+                                <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    key={actor.id}
+                                    className="min-w-[120px] text-center"
+                                >
+                                    <img
+                                        src={
+                                            actor.profile_path
+                                                ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
+                                                : "https://via.placeholder.com/150"
+                                        }
+                                        className="rounded-lg mb-2 shadow"
+                                    />
+                                    <p className="text-sm font-medium">
+                                        {actor.name}
+                                    </p>
+                                </motion.div>
+                            ))}
+
+                        </div>
+                    </div>
+
+                </motion.div>
+
             </div>
         </div>
-
-        {/* CAST */}
-        <div className="p-7">
-            <h2 className="text-2xl font-semibold mb-4 text-center">
-             Main Cast
-            </h2>
-
-            <div className="flex justify-center flex-wrap gap-6">
-            {cast.map((actor: any) => (
-                <div key={actor.id} className="w-28 text-center">
-                <img
-                    src={
-                    actor.profile_path
-                        ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
-                        : "https://via.placeholder.com/150"
-                    }
-                    className="rounded-lg mb-2 shadow"
-                />
-                <p className="text-sm font-medium">{actor.name}</p>
-                </div>
-            ))}
-            </div>
-        </div>
-
-            {/* {providers?.results?.RO?.flatrate && (
-            <div className="mt-4">
-                <p className="font-semibold">📺 Disponibil pe:</p>
-                <div className="flex gap-2 mt-2">
-                {providers.results.RO.flatrate.map((p: any) => (
-                    <img
-                    key={p.provider_id}
-                    src={`https://image.tmdb.org/t/p/w200${p.logo_path}`}
-                    className="w-10"
-                    />
-                ))}
-                </div>
-            </div>
-            )} */}
-        </div>
-
-    </div>
-    </div>
-  );
+    );
 }

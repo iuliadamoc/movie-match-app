@@ -1,17 +1,22 @@
 "use client";
 
-type SidebarProps = {
-  search: string;
-  setSearch: (v: string) => void;
-  sort: string;
-  setSort: (v: string) => void;
-  setPage: (v: number) => void;
-  genres: any[];
-  selectedGenre: number | null;
-  setSelectedGenre: (v: number | null) => void;
-  provider: string;
-  setProvider: (v: string) => void;
-  reset: () => void;
+import { motion } from "framer-motion";
+import { Search, SlidersHorizontal, Film, Tv } from "lucide-react";
+
+const container = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0 },
 };
 
 export default function Sidebar({
@@ -26,97 +31,125 @@ export default function Sidebar({
   provider,
   setProvider,
   reset,
-}: SidebarProps) {
+}: any) {
   return (
-    <div className="w-72 bg-white p-6 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] space-y-6">
-
-      <h2 className="text-xl font-semibold tracking-tight">
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="w-72 sticky top-6 h-fit bg-white p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] space-y-6"
+    >
+      {/* TITLE */}
+      <motion.h2 variants={item} className="text-lg font-semibold">
         Filters
-      </h2>
+      </motion.h2>
 
       {/* SEARCH */}
-      <input
-        placeholder="Search movie..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="border border-gray-300 p-2.5 rounded-lg w-full focus:ring-2 focus:ring-black outline-none"
-      />
-
-      {/* SORT */}
-      <select
-        value={sort}
-        onChange={(e) => {
-          setSort(e.target.value);
-          setPage(1);
-        }}
-        className="border border-gray-300 p-2.5 rounded-lg w-full focus:ring-2 focus:ring-black"
-      >
-        <option value="popularity">🔥 Popular</option>
-        <option value="vote_average">⭐ Top Rated</option>
-        <option value="release_date">📅 Newest</option>
-      </select>
-
-      {/* GENRES */}
-      <div>
-        <p className="text-sm mb-3 font-semibold text-gray-600">
-          Genres
+      <motion.div variants={item} className="space-y-2">
+        <p className="text-xs text-gray-400 uppercase flex items-center gap-1">
+          <Search size={14} /> Search
         </p>
 
-        <div className="flex flex-wrap gap-2">
-          {genres.map((g) => (
+        <div className="relative">
+          <input
+            placeholder="Search movie..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-gray-50 border border-gray-200 pl-9 pr-3 py-2.5 rounded-lg focus:ring-2 focus:ring-black outline-none transition"
+          />
+
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        </div>
+      </motion.div>
+
+      {/* SORT */}
+      <motion.div variants={item} className="space-y-2">
+        <p className="text-xs text-gray-400 uppercase flex items-center gap-1">
+          <SlidersHorizontal size={14} /> Sort
+        </p>
+
+        <select
+          value={sort}
+          onChange={(e) => {
+            setSort(e.target.value);
+            setPage(1);
+          }}
+          className="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-black"
+        >
+          <option value="popularity">Popular</option>
+          <option value="vote_average">Top Rated</option>
+          <option value="release_date">Newest</option>
+        </select>
+      </motion.div>
+
+      {/* GENRES */}
+      <div className="flex flex-wrap gap-2 relative">
+        {genres.map((g: any) => (
+          <div key={g.id} className="relative">
+            {selectedGenre === g.id && (
+              <motion.div
+                layoutId="activeGenre"
+                className="absolute inset-0 bg-black rounded-lg z-0"
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              />
+            )}
+
             <button
-              key={g.id}
               onClick={() =>
                 setSelectedGenre(g.id === selectedGenre ? null : g.id)
               }
-              className={`px-3 py-1.5 rounded-full text-xs ${
-                selectedGenre === g.id
-                  ? "bg-black text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
+              className={`relative z-10 px-3 py-1.5 rounded-lg text-xs ${selectedGenre === g.id
+                  ? "text-white"
+                  : "bg-gray-100 hover:bg-gray-200"
+                }`}
             >
               {g.name}
             </button>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       {/* PROVIDERS */}
-      <div>
-        <p className="text-sm mb-3 font-semibold text-gray-600">
-          Streaming
+      <motion.div variants={item} className="space-y-2">
+        <p className="text-xs text-gray-400 uppercase flex items-center gap-1">
+          <Tv size={14} /> Streaming
         </p>
 
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           {[
             { id: "8", name: "Netflix", color: "bg-red-500" },
             { id: "337", name: "Disney+", color: "bg-indigo-500" },
           ].map((p) => (
-            <button
+            <motion.button
               key={p.id}
+              layout
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() =>
                 setProvider(p.id === provider ? "" : p.id)
               }
-              className={`${p.color} text-white px-3 py-1.5 rounded-full text-xs ${
-                provider === p.id
-                  ? "ring-2 ring-black"
+              className={`${p.color} text-white px-4 py-2 rounded-lg text-xs font-medium transition ${provider === p.id
+                  ? "ring-2 ring-black shadow-lg"
                   : "hover:opacity-90"
-              }`}
+                }`}
             >
               {p.name}
-            </button>
+            </motion.button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* RESET */}
-      <button
+      <motion.button
+        variants={item}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
         onClick={reset}
-        className="w-full bg-gray-100 py-2.5 rounded-lg hover:bg-red-400 hover:text-white transition font-medium"
+        className="w-full bg-gray-100 py-2.5 rounded-lg text-sm font-medium 
+        hover:bg-black hover:text-white transition"
       >
         Reset Filters
-      </button>
-
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }
