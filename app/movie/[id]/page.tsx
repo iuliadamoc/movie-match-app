@@ -25,6 +25,10 @@ export default function MoviePage() {
   const [isTranslated, setIsTranslated] = useState(false);
   const [loadingTranslate, setLoadingTranslate] = useState(false);
 
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
   // AUTH
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -136,6 +140,31 @@ export default function MoviePage() {
   const { movie, cast, providers } = data;
   const t = translatedCache[language];
 
+  const handleSend = async () => {
+    if (!email) return;
+
+    setSending(true);
+
+    try {
+        await fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            email,
+            movie,
+        }),
+        });
+
+        setSent(true);
+    } catch (err) {
+        console.log(err);
+    }
+
+    setSending(false);
+    };
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <Navbar user={user} />
@@ -211,10 +240,26 @@ export default function MoviePage() {
 
             {/* ACTIONS */}
             <div className="flex gap-3 items-center pt-2">
+                {/* EMAIL SHARE */}
+              <div className="flex gap-2 items-center">
 
-              <ActionButton icon={<Mail size={16} />} variant="primary">
-                Send
-              </ActionButton>
+                <input
+                    placeholder="Enter email..."
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="border px-3 py-2 rounded-lg text-sm"
+                />
+
+                <ActionButton
+                    icon={<Mail size={16} />}
+                    variant="primary"
+                    onClick={handleSend}
+                    loading={sending}
+                >
+                    {sent ? "Sent ✔" : "Send"}
+                </ActionButton>
+
+            </div>
 
               <ActionButton
                 icon={<Globe size={16} />}
