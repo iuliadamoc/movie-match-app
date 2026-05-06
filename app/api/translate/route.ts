@@ -1,25 +1,39 @@
 export async function POST(req: Request) {
-  const { texts, target } = await req.json();
-
-  if (!texts || !Array.isArray(texts)) {
-    return Response.json({ error: "Invalid input" }, { status: 400 });
-  }
-
   try {
-    const results = await Promise.all(
-      texts.map(async (text: string) => {
-        const res = await fetch(
-          `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURIComponent(text)}`
-        );
+    const { texts, target } = await req.json();
 
-        const data = await res.json();
-        return data[0].map((item: any) => item[0]).join("");
-      })
+    if (!texts || !Array.isArray(texts)) {
+      return Response.json({ error: "Invalid input" }, { status: 400 });
+    }
+
+    const res = await fetch(
+      `https://translation.googleapis.com/language/translate/v2?key=${process.env.GOOGLE_TRANSLATE_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          q: texts,
+          target: target,
+        }),
+      }
     );
 
-    return Response.json({ translated: results });
+    const data = await res.json();
+
+    if (!data?.data?.translations) {
+      return Response.json({ error: "Translation failed" }, { status: 500 });
+    }
+
+    const translated = data.data.translations.map(
+      (t: any) => t.translatedText
+    );
+
+    return Response.json({ translated });
 
   } catch (err) {
-    return Response.json({ error: "Translation failed" }, { status: 500 });
+    console.error(err);
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 }

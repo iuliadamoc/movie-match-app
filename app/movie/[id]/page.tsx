@@ -28,6 +28,7 @@ export default function MoviePage() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   // AUTH
   useEffect(() => {
@@ -79,19 +80,24 @@ export default function MoviePage() {
   if (!data) return;
 
   if (translatedCache[language]) {
-    setIsTranslated((prev) => !prev);
-    return;
+  if (isTranslated) {
+    setIsTranslated(false);
+    setLanguage("en");
+  } else {
+    setIsTranslated(true);
   }
+  return;
+}
 
   setLoadingTranslate(true);
 
   try {
     const texts = [
-      movie.title,
-      movie.overview,
-      ...movie.genres.map((g: any) => g.name),
-      "Main Cast",
-      "Available on"
+        movie.title,
+        movie.overview,
+        ...movie.genres.map((g: any) => g.name),
+        "Main Cast",
+        "Available on"
     ];
 
     const res = await fetch("/api/translate", {
@@ -153,8 +159,15 @@ export default function MoviePage() {
         },
         body: JSON.stringify({
             email,
-            movie,
-        }),
+            movie: {
+                ...movie,
+                title: isTranslated && t ? t.title : movie.title,
+                overview: isTranslated && t ? t.overview : movie.overview,
+                genres: isTranslated && t
+                ? t.genres
+                : movie.genres.map((g: any) => g.name),
+            },
+            }),
         });
 
         setSent(true);
@@ -276,7 +289,7 @@ export default function MoviePage() {
 
               {/* LANGUAGE */}
               <select
-                value={language}
+                value={isTranslated ? language : "en"}
                 onChange={(e) => handleLanguageChange(e.target.value)}
                 className="border px-3 py-2 rounded-lg text-sm bg-white"
               >
