@@ -101,6 +101,25 @@ export default function MoviePage() {
         check();
     }, [user, data]);
 
+    useEffect(() => {
+    if (!data?.movie) return;
+
+    const existing = JSON.parse(localStorage.getItem("recent") || "[]");
+
+    const updated = [
+        {
+        id: data.movie.id,
+        poster_path: data.movie.poster_path,
+        title: data.movie.title,
+        },
+        ...existing.filter((m: any) => m.id !== data.movie.id),
+    ].slice(0, 10);
+
+    localStorage.setItem("recent", JSON.stringify(updated));
+
+    console.log("RECENT SAVED:", updated); // 🔍 DEBUG
+    }, [data]);
+
     // CHANGE LANGUAGE
     const handleLanguageChange = (lang: string) => {
         setLanguage(lang);

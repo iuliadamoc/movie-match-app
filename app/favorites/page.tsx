@@ -90,9 +90,9 @@ export default function FavoritesPage() {
 
   // RECENTLY VIEWED
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("recent") || "[]");
-    setRecent(data);
-  }, []);
+  const data = JSON.parse(localStorage.getItem("recent") || "[]");
+  setRecent(data);
+}, []);
 
   // REMOVE FAVORITE
   const removeFav = async (id: string) => {
@@ -194,24 +194,23 @@ export default function FavoritesPage() {
 
         {/* RECENT */}
         {recent.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-xl font-semibold mb-4">
-              Recently viewed
-            </h2>
+  <div className="mt-16">
+    <h2 className="text-xl font-semibold mb-4">
+      Recently viewed
+    </h2>
 
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {recent.map((movie) => (
-                <Link href={`/movie/${movie.id}`} key={movie.id}>
-                  <img
-                    src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-                    className="min-w-[140px] rounded-lg hover:scale-105 transition"
-                  />
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
+    <div className="flex gap-4 overflow-x-auto pb-2">
+      {recent.map((movie) => (
+        <Link href={`/movie/${movie.id}`} key={movie.id}>
+          <img
+            src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+            className="min-w-[140px] rounded-lg hover:scale-105 transition"
+          />
+        </Link>
+      ))}
+    </div>
+  </div>
+)}
       </div>
     </div>
   );

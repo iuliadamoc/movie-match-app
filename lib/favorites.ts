@@ -34,6 +34,7 @@ export const addFavorite = async (user: any, movie: any) => {
     title: movie.title,
     poster: movie.poster_path,
     createdAt: new Date(),
+    genres: movie.genre_ids || movie.genres?.map((g: any) => g.id) || []
   });
 };
 

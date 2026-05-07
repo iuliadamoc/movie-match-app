@@ -4,9 +4,29 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Navbar({ user }: any) {
   const router = useRouter();
+
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+  if (!user) return;
+
+  const fetchUser = async () => {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      setName(snap.data().name);
+    }
+  };
+
+  fetchUser();
+}, [user]);
 
   return (
     <div className="flex justify-between items-center h-6 mb-6">
@@ -28,8 +48,11 @@ export default function Navbar({ user }: any) {
 
       {/* RIGHT SIDE */}
       <div className="flex gap-3 items-center">
-        <span className="text-sm text-gray-600">
-          {user.email}
+        <span
+          onClick={() => router.push("/account")}
+          className="text-sm text-gray-600 cursor-pointer hover:text-black transition"
+        >
+          {name || user.email}
         </span>
 
         <button onClick={() => router.push("/favorites")}>
