@@ -64,16 +64,38 @@ export default function AIPage() {
 
       const data = await res.json();
 
-      const formattedMovies = data.movies.map((movie: any) => ({
-        id: movie.id,
-        title: movie.title,
-        year: movie.release_date?.split("-")[0],
-        score: `${Math.round(movie.vote_average * 10)}%`,
-        image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-        explanation: movie.aiExplanation,
-      }));
+      console.log("AI RESPONSE:", data);
 
-      setMovies(formattedMovies);
+if (!data.movies || !Array.isArray(data.movies)) {
+  console.log("NO MOVIES RETURNED");
+
+  setMovies([]);
+
+  return;
+}
+
+const formattedMovies = data.movies.map(
+  (movie: any) => ({
+    id: movie.id,
+
+    title: movie.title,
+
+    year:
+      movie.release_date?.split("-")[0],
+
+    score: `${Math.round(
+      movie.vote_average * 10
+    )}%`,
+
+    image:
+      `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+
+    explanation:
+      movie.aiExplanation,
+  })
+);
+
+setMovies(formattedMovies);
 
       // SAVE FIREBASE HISTORY
       await addDoc(collection(db, "ai_history"), {
@@ -100,21 +122,18 @@ export default function AIPage() {
         <div className="absolute inset-0 backdrop-blur-3xl" />
       </div>
 
-      <div className="relative z-10 px-6 md:px-16 py-10">
+      <div className="relative z-10 px-6 md:px-16 py-6">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-14"
+          className="mb-6"
         >
-          <h1 className="text-5xl md:text-7xl font-black leading-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            Find the perfect
-            <br />
-            movie for tonight.
+          <h1 className="text-4xl md:text-5xl font-black leading-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            Find the perfect movie for tonight.
           </h1>
 
-          <p className="text-gray-400 text-lg mt-6 max-w-2xl">
-            AI-powered movie recommendations based on your mood,
-            preferences and vibe.
+          <p className="text-gray-400 text-base mt-2 max-w-2xl">
+            Personalized recommendations based on mood and preferences.
           </p>
         </motion.div>
 

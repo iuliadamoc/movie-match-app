@@ -85,13 +85,70 @@ export default function Home() {
       .then((data) => setGenres(data));
   }, []);
 
-  if (!user) return <p className="p-6">Loading...</p>;
+  if (!user)
+  return (
+    <div className="
+      min-h-screen
+      bg-black
+      flex items-center justify-center
+      text-white
+    ">
+      <div className="text-center">
+
+        <div className="
+          w-16 h-16
+          border-4 border-purple-500
+          border-t-transparent
+          rounded-full
+          animate-spin
+          mx-auto mb-6
+        " />
+
+        <p className="text-xl text-gray-400">
+          Loading MovieMatch...
+        </p>
+
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-black text-white overflow-hidden">
       <Navbar user={user} />
 
-      <div className="flex gap-6">
+      {/* BACKGROUND */}
+      <div className="fixed inset-0 z-0">
+
+        <div className="
+          absolute inset-0
+          bg-gradient-to-br
+          from-purple-900/20
+          via-black
+          to-blue-900/20
+        " />
+
+        <div className="
+          absolute top-0 left-0
+          w-[600px] h-[600px]
+          bg-purple-500/10
+          rounded-full blur-3xl
+        " />
+
+        <div className="
+          absolute bottom-0 right-0
+          w-[500px] h-[500px]
+          bg-blue-500/10
+          rounded-full blur-3xl
+        " />
+
+      </div>
+
+      <div className="
+        relative z-10
+        flex gap-8
+        px-4 md:px-8
+        py-10
+        ">
 
         <Sidebar
           search={search}
@@ -116,13 +173,19 @@ export default function Home() {
         <div className="flex-1">
 
           {/* MOVIES */}
-
           <motion.div
             variants={container}
             initial="hidden"
             animate="show"
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="
+              grid
+              grid-cols-2
+              md:grid-cols-3
+              xl:grid-cols-4
+              2xl:grid-cols-5
+              gap-8
+              ">
 
               {loading
                 ? Array.from({ length: 10 }).map((_, i) => (
@@ -138,12 +201,15 @@ export default function Home() {
           </motion.div>
 
           {/* PAGINATION */}
-          <div className="flex justify-center items-center gap-2 mt-10 flex-wrap">
+          <div className="
+            flex justify-center items-center
+            gap-3 mt-16 flex-wrap
+            ">
 
             {/* FIRST */}
             <button
               onClick={() => setPage(1)}
-              className="px-3 py-1.5 rounded-full bg-gray-200 hover:bg-gray-300 text-sm"
+              className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-gray-300 text-sm"
             >
               ⏮
             </button>
@@ -152,7 +218,7 @@ export default function Home() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
+              className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-gray-300 disabled:opacity-40 text-sm"
             >
               ←
             </button>
@@ -175,8 +241,8 @@ export default function Home() {
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   className={`px-3 py-1.5 rounded-full text-sm transition ${page === pageNumber
-                    ? "bg-black text-white shadow"
-                    : "bg-gray-200 hover:bg-gray-300"
+                    ? "bg-gradient-to-red from-purple-600 to-blue-500 text-white shadow-lg shadow-purple-500/30"
+                    : "bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-gray-300"
                     }`}
                 >
                   {pageNumber}
@@ -187,7 +253,7 @@ export default function Home() {
             {/* NEXT */}
             <button
               onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1.5 rounded-full bg-gray-200 hover:bg-gray-300 text-sm"
+              className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-gray-300 text-sm"
             >
               →
             </button>

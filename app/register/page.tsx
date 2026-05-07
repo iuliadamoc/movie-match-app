@@ -1,58 +1,105 @@
 "use client";
 
 import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+
+import {
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
+
 import { auth } from "@/lib/firebase";
+
 import { useRouter } from "next/navigation";
+
 import Link from "next/link";
+
 import { motion } from "framer-motion";
 
+import {
+  Eye,
+  EyeOff,
+} from "lucide-react";
+
 export default function RegisterPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [confirm, setConfirm] =
+    useState("");
+
+  const [show, setShow] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
 
   const router = useRouter();
 
-  // 🔐 VALIDARE EMAIL
-  const isValidEmail = (email: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // EMAIL VALIDATION
+  const isValidEmail = (
+    email: string
+  ) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      email
+    );
 
-  // 🔐 VALIDARE PAROLA
-  const isStrongPassword = (pass: string) =>
-    pass.length >= 6 && /[A-Z]/.test(pass) && /[0-9]/.test(pass);
+  // PASSWORD VALIDATION
+  const isStrongPassword = (
+    pass: string
+  ) =>
+    pass.length >= 6 &&
+    /[A-Z]/.test(pass) &&
+    /[0-9]/.test(pass);
 
+  // REGISTER
   const handleRegister = async () => {
     setError("");
 
     if (!isValidEmail(email)) {
-      return setError("Invalid email format");
+      return setError(
+        "Invalid email format"
+      );
     }
 
     if (!isStrongPassword(password)) {
       return setError(
-        "Password must be 6+ chars, include a number and a capital letter"
+        "Password must contain 6+ chars, a number and a capital letter"
       );
     }
 
     if (password !== confirm) {
-      return setError("Passwords do not match");
+      return setError(
+        "Passwords do not match"
+      );
     }
 
     setLoading(true);
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       router.push("/");
     } catch (err: any) {
-      // 🔥 FIREBASE ERRORS
-      if (err.code === "auth/email-already-in-use") {
-        setError("This email is already registered");
+      if (
+        err.code ===
+        "auth/email-already-in-use"
+      ) {
+        setError(
+          "This email is already registered"
+        );
       } else {
-        setError("Account creation failed");
+        setError(
+          "Account creation failed"
+        );
       }
     }
 
@@ -60,132 +107,450 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="
+      min-h-screen
+      bg-black
+      text-white
+      overflow-hidden
+      flex
+    ">
 
-      {/* 🎬 LEFT */}
-      <div className="hidden lg:flex w-1/2 relative">
-        <img
-          src="https://image.tmdb.org/t/p/original/5GA3vV1aWWHTSDO5eno8V5zDo8r.jpg"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60"></div>
+      {/* BACKGROUND */}
+      <div className="fixed inset-0 z-0">
 
-        <div className="absolute bottom-10 left-10 text-white max-w-md">
-          <h1 className="text-5xl font-bold mb-4">
-            Start Your Movie Journey
-          </h1>
-          <p className="text-gray-300 text-lg">
-            Discover movies tailored just for you.
-          </p>
-        </div>
+        <div className="
+          absolute inset-0
+          bg-gradient-to-br
+          from-purple-900/30
+          via-black
+          to-blue-900/20
+        " />
+
+        <div className="
+          absolute top-0 left-0
+          w-[700px] h-[700px]
+          bg-purple-500/10
+          rounded-full blur-3xl
+        " />
+
+        <div className="
+          absolute bottom-0 right-0
+          w-[600px] h-[600px]
+          bg-blue-500/10
+          rounded-full blur-3xl
+        " />
+
       </div>
 
-      {/* 🧾 RIGHT */}
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
+      {/* LEFT SIDE */}
+      <div className="
+        hidden lg:block
+        w-[62%]
+        relative
+        z-10
+        p-6
+      ">
 
-        <div className="w-full max-w-md">
+        <motion.div
+          initial={{
+            opacity: 0,
+            scale: 1.05,
+          }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+          }}
+          transition={{
+            duration: 1,
+          }}
+          className="
+            relative
+            w-full
+            h-full
+            min-h-screen
+            rounded-[40px]
+            overflow-hidden
+            border border-white/10
+            shadow-2xl
+          "
+        >
 
-          <div className="bg-white p-10 rounded-3xl shadow-2xl border border-gray-100">
+          {/* IMAGE */}
+          <img
+            src="https://image.tmdb.org/t/p/original/5GA3vV1aWWHTSDO5eno8V5zDo8r.jpg"
+            className="
+              absolute inset-0
+              w-full h-full
+              object-cover
+            "
+          />
 
-            {/* LOGO */}
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-gradient-to-br from-black to-gray-700 rounded-lg flex items-center justify-center text-white font-bold">
-                M
-              </div>
-              <h1 className="text-2xl font-bold tracking-wider">
-                <span className="text-red-500">MOVIE</span>
-                <span className="text-black">MATCH</span>
+          {/* OVERLAY */}
+          <div className="
+            absolute inset-0
+            bg-gradient-to-t
+            from-black
+            via-black/30
+            to-black/10
+          " />
+
+          {/* CONTENT */}
+          <div className="
+            absolute bottom-0
+            p-14
+            max-w-2xl
+          ">
+
+            <h1 className="
+              text-6xl
+              font-black
+              leading-[0.95]
+              mb-8
+            ">
+              Start your
+              <br />
+              movie journey.
+            </h1>
+
+            <p className="
+              text-gray-300
+              text-lg
+              leading-8
+              max-w-xl
+            ">
+              Create your personalized
+              cinematic universe with
+              AI-powered recommendations,
+              mood discovery and real-time
+              movie matching.
+            </p>
+
+          </div>
+
+        </motion.div>
+
+      </div>
+
+      {/* RIGHT SIDE */}
+      <div className="
+        w-[38%]
+        relative z-10
+        flex items-center justify-center
+        px-6 py-10
+      ">
+
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="
+            w-full max-w-md
+          "
+        >
+
+          {/* LOGO */}
+          <div className="
+            flex items-center gap-4
+            mb-10
+          ">
+
+            <motion.div
+              whileHover={{
+                rotate: 8,
+                scale: 1.05,
+              }}
+              className="
+                w-14 h-14 rounded-2xl
+                bg-gradient-to-br
+                from-purple-600
+                to-blue-500
+                flex items-center justify-center
+                text-white
+                font-black text-xl
+                shadow-lg shadow-purple-500/30
+              "
+            >
+              M
+            </motion.div>
+
+            <div>
+
+              <h1 className="
+                text-3xl
+                font-black
+                tracking-wide
+              ">
+                <span className="text-white">
+                  MOVIE
+                </span>
+
+                <span className="
+                  bg-gradient-to-r
+                  from-purple-400
+                  to-blue-400
+                  bg-clip-text
+                  text-transparent
+                ">
+                  MATCH
+                </span>
               </h1>
+
+              <p className="
+                text-gray-500 text-sm
+              ">
+                AI movie discovery platform
+              </p>
+
             </div>
 
-            <h2 className="text-3xl font-bold mb-2">
+          </div>
+
+          {/* CARD */}
+          <div className="
+            bg-white/5
+            border border-white/10
+            backdrop-blur-2xl
+            rounded-[32px]
+            p-8 md:p-10
+            shadow-2xl
+          ">
+
+            <h2 className="
+              text-4xl
+              font-black
+              mb-3
+            ">
               Create account
             </h2>
 
-            <p className="text-gray-500 mb-8">
-              Join MovieMatch today
+            <p className="
+              text-gray-400
+              mb-10
+            ">
+              Join MovieMatch today.
             </p>
 
-            <div className="space-y-5">
+            {/* FORM */}
+            <div className="
+              space-y-5
+            ">
 
               {/* EMAIL */}
-              <div className="relative">
+              <div className="
+                relative
+              ">
+
                 <input
                   type="email"
+                  placeholder="Email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="peer w-full border p-3 pt-5 rounded-lg focus:ring-2 focus:ring-black outline-none"
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
+                  className="
+                    w-full
+                    bg-white/5
+                    border border-white/10
+                    rounded-2xl
+                    px-5 py-4
+                    outline-none
+                    text-white
+                    placeholder:text-gray-500
+                    focus:border-purple-500
+                    transition-all
+                  "
                 />
-                <label className="absolute left-3 top-2 text-xs text-gray-500">
-                  Email
-                </label>
+
               </div>
 
               {/* PASSWORD */}
-              <div className="relative">
+              <div className="
+                relative
+              ">
+
                 <input
-                  type={show ? "text" : "password"}
+                  type={
+                    show
+                      ? "text"
+                      : "password"
+                  }
+                  placeholder="Password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="peer w-full border p-3 pt-5 rounded-lg focus:ring-2 focus:ring-black outline-none"
+                  onChange={(e) =>
+                    setPassword(
+                      e.target.value
+                    )
+                  }
+                  className="
+                    w-full
+                    bg-white/5
+                    border border-white/10
+                    rounded-2xl
+                    px-5 py-4
+                    pr-14
+                    outline-none
+                    text-white
+                    placeholder:text-gray-500
+                    focus:border-purple-500
+                    transition-all
+                  "
                 />
-                <label className="absolute left-3 top-2 text-xs text-gray-500">
-                  Password
-                </label>
+
               </div>
 
               {/* CONFIRM */}
-              <div className="relative">
+              <div className="
+                relative
+              ">
+
                 <input
-                  type={show ? "text" : "password"}
+                  type={
+                    show
+                      ? "text"
+                      : "password"
+                  }
+                  placeholder="Confirm password"
                   value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  className="peer w-full border p-3 pt-5 rounded-lg focus:ring-2 focus:ring-black outline-none"
+                  onChange={(e) =>
+                    setConfirm(
+                      e.target.value
+                    )
+                  }
+                  className="
+                    w-full
+                    bg-white/5
+                    border border-white/10
+                    rounded-2xl
+                    px-5 py-4
+                    pr-14
+                    outline-none
+                    text-white
+                    placeholder:text-gray-500
+                    focus:border-purple-500
+                    transition-all
+                  "
                 />
-                <label className="absolute left-3 top-2 text-xs text-gray-500">
-                  Confirm Password
-                </label>
 
                 <button
-                  onClick={() => setShow(!show)}
-                  className="absolute right-3 top-3 text-sm text-gray-500"
+                  onClick={() =>
+                    setShow(!show)
+                  }
+                  className="
+                    absolute right-5 top-1/2
+                    -translate-y-1/2
+                    text-gray-500
+                    hover:text-white
+                    transition-all
+                  "
                 >
-                  {show ? "Hide" : "Show"}
+                  {show ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
                 </button>
+
               </div>
 
               {/* ERROR */}
               {error && (
-                <p className="text-red-500 text-sm">{error}</p>
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    y: -10,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  className="
+                    bg-red-500/10
+                    border border-red-500/20
+                    text-red-300
+                    rounded-2xl
+                    px-4 py-3
+                    text-sm
+                  "
+                >
+                  {error}
+                </motion.div>
               )}
 
               {/* BUTTON */}
               <motion.button
                 onClick={handleRegister}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                className="w-full bg-black text-white py-3 rounded-lg"
+                whileHover={{
+                  scale: 1.02,
+                }}
+                whileTap={{
+                  scale: 0.98,
+                }}
+                className="
+                  w-full
+                  py-4 rounded-2xl
+                  bg-gradient-to-r
+                  from-purple-600
+                  to-blue-500
+                  font-semibold
+                  shadow-lg
+                  shadow-purple-500/20
+                  flex items-center justify-center
+                "
               >
-                {loading ? "Creating..." : "Create account"}
+                {loading ? (
+                  <span className="
+                    animate-pulse
+                  ">
+                    Creating...
+                  </span>
+                ) : (
+                  "Create account"
+                )}
               </motion.button>
 
             </div>
 
             {/* FOOTER */}
-            <p className="mt-6 text-sm text-gray-500 text-center">
+            <p className="
+              mt-8
+              text-center
+              text-gray-500
+              text-sm
+            ">
               Already have an account?{" "}
-              <Link href="/login" className="text-black font-semibold">
+
+              <Link
+                href="/login"
+                className="
+                  text-white
+                  font-semibold
+                  hover:text-purple-400
+                  transition-all
+                "
+              >
                 Login
               </Link>
+
             </p>
 
           </div>
 
-          <p className="text-center text-xs text-gray-400 mt-6">
+          <p className="
+            text-center
+            text-xs
+            text-gray-600
+            mt-8
+          ">
             © 2026 MovieMatch
           </p>
 
-        </div>
+        </motion.div>
+
       </div>
     </div>
   );

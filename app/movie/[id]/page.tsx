@@ -102,22 +102,22 @@ export default function MoviePage() {
     }, [user, data]);
 
     useEffect(() => {
-    if (!data?.movie) return;
+        if (!data?.movie) return;
 
-    const existing = JSON.parse(localStorage.getItem("recent") || "[]");
+        const existing = JSON.parse(localStorage.getItem("recent") || "[]");
 
-    const updated = [
-        {
-        id: data.movie.id,
-        poster_path: data.movie.poster_path,
-        title: data.movie.title,
-        },
-        ...existing.filter((m: any) => m.id !== data.movie.id),
-    ].slice(0, 10);
+        const updated = [
+            {
+                id: data.movie.id,
+                poster_path: data.movie.poster_path,
+                title: data.movie.title,
+            },
+            ...existing.filter((m: any) => m.id !== data.movie.id),
+        ].slice(0, 10);
 
-    localStorage.setItem("recent", JSON.stringify(updated));
+        localStorage.setItem("recent", JSON.stringify(updated));
 
-    console.log("RECENT SAVED:", updated); // 🔍 DEBUG
+        console.log("RECENT SAVED:", updated); // 🔍 DEBUG
     }, [data]);
 
     // CHANGE LANGUAGE
@@ -254,136 +254,182 @@ export default function MoviePage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-6">
+        <div className="min-h-screen bg-black text-white overflow-hidden">
             <Navbar user={user} />
 
-            <div className="max-w-6xl mx-auto space-y-6">
+            {/* BACKGROUND */}
+            <div className="fixed inset-0 z-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20" />
+                <div className="absolute inset-0 backdrop-blur-3xl" />
 
-                {/* TOP */}
-                <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
+                {/* BACKDROP */}
+                {movie.backdrop_path && (
+                    <img
+                        src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+                        className="absolute inset-0 w-full h-full object-cover opacity-10"
+                    />
+                )}
+            </div>
 
-                    {/* POSTER */}
-                    <motion.div
-                        whileHover={{ scale: 1.03 }}
-                        className="bg-white rounded-2xl shadow-lg p-3"
-                    >
-                        <img
-                            src={
-                                movie.poster_path
-                                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                                    : "https://via.placeholder.com/300x450"
-                            }
-                            className="w-full h-[420px] object-cover rounded-xl"
-                        />
-                    </motion.div>
+            <div className="relative z-10 px-6 md:px-14 py-10">
 
-                    {/* INFO */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6 space-y-4"
-                    >
+                <div className="max-w-7xl mx-auto space-y-10">
 
-                        {/* TITLE */}
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-3xl font-bold">
+                    {/* TOP */}
+                    <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-10">
+
+                        {/* POSTER */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            whileHover={{
+                                scale: 1.02,
+                                y: -5,
+                            }}
+                            className="
+                            relative
+                            rounded-3xl
+                            overflow-hidden
+                            border border-white/10
+                            bg-white/5
+                            backdrop-blur-xl
+                            shadow-2xl
+                        "
+                        >
+                            <img
+                                src={
+                                    movie.poster_path
+                                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                                        : "https://via.placeholder.com/300x450"
+                                }
+                                className="w-full h-[520px] object-cover"
+                            />
+
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+
+                            {/* FAVORITE */}
+                            <div className="absolute top-4 right-4">
+
+                                <motion.button
+                                    onClick={handleFavorite}
+                                    whileTap={{ scale: 0.8 }}
+                                    whileHover={{ scale: 1.1 }}
+                                    className="
+                                    w-12 h-12 rounded-full
+                                    bg-black/40 backdrop-blur-xl
+                                    border border-white/10
+                                    flex items-center justify-center
+                                "
+                                >
+                                    <Heart
+                                        size={22}
+                                        className={`transition ${isFav
+                                                ? "text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+                                                : "text-white"
+                                            }`}
+                                        fill={isFav ? "currentColor" : "none"}
+                                    />
+                                </motion.button>
+
+                            </div>
+                        </motion.div>
+
+                        {/* INFO */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="
+                            bg-white/5
+                            border border-white/10
+                            rounded-3xl
+                            p-8
+                            backdrop-blur-xl
+                            shadow-2xl
+                            space-y-6
+                        "
+                        >
+
+                            {/* TITLE */}
+                            <div>
+                                <h1 className="
+                                text-5xl
+                                font-black
+                                leading-tight
+                                bg-gradient-to-r
+                                from-white
+                                to-gray-400
+                                bg-clip-text
+                                text-transparent
+                            ">
                                     {isTranslated && t ? t.title : movie.title}
                                 </h1>
 
-                                <div className="relative group">
-
-                                    <motion.button
-                                        onClick={handleFavorite}
-                                        whileTap={{ scale: 0.85 }}
-                                        whileHover={{ scale: 1.1 }}
-                                        className="p-1"
-                                    >
-                                        <motion.div
-                                            animate={{
-                                                scale:
-                                                    isFav && !initialAnimDone
-                                                        ? [1, 1.4, 1] //  anim la load
-                                                        : isFav
-                                                            ? [1, 1.25, 1]
-                                                            : 1,
-                                            }}
-                                            transition={{ duration: 0.4 }}
-                                        >
-                                            <Heart
-                                                size={20}
-                                                className={`transition ${isFav
-                                                        ? "text-red-500 drop-shadow-[0_0_6px_rgba(239,68,68,0.6)]"
-                                                        : "text-gray-400 group-hover:text-red-400"
-                                                    }`}
-                                                fill={isFav ? "currentColor" : "none"}
-                                            />
-                                        </motion.div>
-                                    </motion.button>
-
-                                    {/* TOOLTIP */}
-                                    <div className="
-                                            absolute -top-9 left-1/2 -translate-x-1/2
-                                            bg-black text-white text-xs px-2 py-1 rounded-md
-                                            opacity-0 group-hover:opacity-100
-                                            translate-y-2 group-hover:translate-y-0
-                                            transition-all duration-200
-                                            pointer-events-none
-                                            whitespace-nowrap
-                                        ">
-                                        {isFav ? "Remove from favorites" : "Add to favorites"}
-                                    </div>
-
-                                </div>
+                                <p className="text-gray-400 mt-3 text-lg">
+                                    {movie.release_date?.slice(0, 4)} •{" "}
+                                    {isTranslated && t?.genres?.length
+                                        ? t.genres.join(", ")
+                                        : movie.genres?.map((g: any) => g.name).join(", ")}
+                                </p>
                             </div>
 
-                            <p className="text-gray-500 text-sm mt-1">
-                                {movie.release_date?.slice(0, 4)} •{" "}
-                                {isTranslated && t?.genres?.length
-                                    ? t.genres.join(", ")
-                                    : movie.genres?.map((g: any) => g.name).join(", ")}
-                            </p>
-                        </div>
+                            {/* STATS */}
+                            <div className="flex flex-wrap gap-3">
 
-                        {/* STATS */}
-                        <div className="flex flex-wrap gap-2">
-                            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
-                                ⭐ {movie.vote_average}
-                            </span>
+                                <div className="
+                                px-4 py-2 rounded-2xl
+                                bg-yellow-500/10
+                                border border-yellow-500/20
+                                text-yellow-300
+                                font-semibold
+                            ">
+                                    ⭐ {movie.vote_average.toFixed(1)}
+                                </div>
 
-                            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
-                                ⏱️ {movie.runtime} min
-                            </span>
+                                <div className="
+                                px-4 py-2 rounded-2xl
+                                bg-blue-500/10
+                                border border-blue-500/20
+                                text-blue-300
+                                font-semibold
+                            ">
+                                    ⏱️ {movie.runtime} min
+                                </div>
 
-                            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
-                                🔥 {Math.round(movie.popularity)}
-                            </span>
-                        </div>
+                                <div className="
+                                px-4 py-2 rounded-2xl
+                                bg-red-500/10
+                                border border-red-500/20
+                                text-red-300
+                                font-semibold
+                            ">
+                                    🔥 {Math.round(movie.popularity)}
+                                </div>
 
-                        {/* DESCRIPTION */}
-                        <div className="space-y-2">
-                            <p className="text-gray-700 leading-relaxed transition-all duration-300">
-                                {isTranslated && t ? t.overview : movie.overview}
-                            </p>
+                            </div>
 
-                            {isTranslated && (
-                                <span className="text-xs text-gray-400">
-                                    Translated ({language.toUpperCase()})
-                                </span>
-                            )}
-                        </div>
+                            {/* DESCRIPTION */}
+                            <div className="space-y-3">
 
-                        {/* ACTIONS */}
-                        <div className="flex gap-3 items-center pt-2">
-                            {/* EMAIL SHARE */}
-                            <div className="flex gap-2 items-center">
+                                <p className="
+                                text-gray-300
+                                leading-relaxed
+                                text-lg
+                            ">
+                                    {isTranslated && t
+                                        ? t.overview
+                                        : movie.overview}
+                                </p>
 
-                                {/* <input
-                                    placeholder="Enter email..."
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="border px-3 py-2 rounded-lg text-sm"
-                                /> */}
+                                {isTranslated && (
+                                    <span className="text-xs text-gray-500">
+                                        Translated ({language.toUpperCase()})
+                                    </span>
+                                )}
+
+                            </div>
+
+                            {/* ACTIONS */}
+                            <div className="flex flex-wrap gap-3 pt-4">
 
                                 <ActionButton
                                     icon={<Mail size={16} />}
@@ -394,148 +440,254 @@ export default function MoviePage() {
                                     {sent ? "Sent ✔" : "Send"}
                                 </ActionButton>
 
-                            </div>
+                                <ActionButton
+                                    icon={<Globe size={16} />}
+                                    variant="secondary"
+                                    onClick={handleTranslate}
+                                    loading={loadingTranslate}
+                                >
+                                    {loadingTranslate
+                                        ? "Translating..."
+                                        : isTranslated
+                                            ? "Original"
+                                            : "Translate"}
+                                </ActionButton>
 
-                            <ActionButton
-                                icon={<Globe size={16} />}
-                                variant="secondary"
-                                onClick={handleTranslate}
-                                loading={loadingTranslate}
-                            >
-                                {loadingTranslate
-                                    ? "Translating..."
-                                    : isTranslated
-                                        ? "Original"
-                                        : "Translate"}
-                            </ActionButton>
+                                <div className="flex flex-wrap gap-2">
 
-                            {/* LANGUAGE */}
-                            <select
-                                value={isTranslated ? language : "en"}
-                                onChange={(e) => handleLanguageChange(e.target.value)}
-                                className="border px-3 py-2 rounded-lg text-sm bg-white"
-                            >
-                                <option value="en">🇺🇸 English</option>
-                                <option value="ro">🇷🇴 Romanian</option>
-                                <option value="fr">🇫🇷 French</option>
-                                <option value="de">🇩🇪 German</option>
-                                <option value="es">🇪🇸 Spanish</option>
-                                <option value="it">🇮🇹 Italian</option>
-                            </select>
+                                    {[
+                                        { code: "en", label: "🇺🇸 EN" },
+                                        { code: "ro", label: "🇷🇴 RO" },
+                                        { code: "fr", label: "🇫🇷 FR" },
+                                        { code: "de", label: "🇩🇪 DE" },
+                                        { code: "es", label: "🇪🇸 ES" },
+                                        { code: "it", label: "🇮🇹 IT" },
+                                    ].map((lang) => {
 
-                        </div>
+                                        const active =
+                                            (isTranslated && language === lang.code) ||
+                                            (!isTranslated && lang.code === "en");
 
-                        {/* PROVIDERS */}
-                        {providers?.flatrate && (
-                            <div className="pt-4">
-                                <p className="text-sm font-semibold mb-2">
-                                    {isTranslated && t ? t.labels.available : "Available on"}
-                                </p>
+                                        return (
+                                            <motion.button
+                                                key={lang.code}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => handleLanguageChange(lang.code)}
+                                                className={`
+                                                        px-4 py-2 rounded-2xl
+                                                        border transition-all duration-300
+                                                        text-sm font-medium
+                                                        backdrop-blur-xl
+                                                        ${active
+                                                        ? "bg-purple-500/20 border-purple-400 text-white shadow-lg shadow-purple-500/20"
+                                                        : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
+                                                    }
+                                                    `}
+                                            >
+                                                {lang.label}
+                                            </motion.button>
+                                        );
+                                    })}
 
-                                <div className="flex gap-2 flex-wrap">
-                                    {providers.flatrate.map((p: any) => (
-                                        <div
-                                            key={p.provider_id}
-                                            className="bg-gray-100 px-3 py-1 rounded-lg flex items-center gap-2"
-                                        >
-                                            <img
-                                                src={`https://image.tmdb.org/t/p/w200${p.logo_path}`}
-                                                className="w-5 h-5 object-contain"
-                                            />
-                                            <span className="text-xs font-medium">
-                                                {p.provider_name}
-                                            </span>
-                                        </div>
-                                    ))}
                                 </div>
+
                             </div>
-                        )}
 
-                    </motion.div>
-                </div>
+                            {/* PROVIDERS */}
+                            {providers?.flatrate && (
+                                <div className="pt-6">
 
-                {/* CAST */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-lg p-6"
-                >
-                    <h2 className="text-xl font-semibold mb-4">
-                        {isTranslated && t ? t.labels.cast : "Main Cast"}
-                    </h2>
+                                    <p className="text-sm font-semibold text-gray-400 mb-4">
+                                        {isTranslated && t
+                                            ? t.labels.available
+                                            : "Available on"}
+                                    </p>
 
-                    <div className="flex gap-4 overflow-x-auto pb-2">
-                        {cast.map((actor: any) => (
-                            <motion.div
-                                key={actor.id}
-                                whileHover={{ scale: 1.07 }}
-                                className="min-w-[120px] bg-gray-50 rounded-xl p-2 shadow-sm"
-                            >
-                                <img
-                                    src={
-                                        actor.profile_path
-                                            ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
-                                            : "https://via.placeholder.com/150"
-                                    }
-                                    className="rounded-lg mb-2"
-                                />
+                                    <div className="flex gap-3 flex-wrap">
 
-                                <p className="text-xs font-medium text-center">
-                                    {actor.name}
-                                </p>
-                            </motion.div>
-                        ))}
+                                        {providers.flatrate.map((p: any) => (
+                                            <motion.div
+                                                whileHover={{ scale: 1.05 }}
+                                                key={p.provider_id}
+                                                className="
+                                                bg-white/5
+                                                border border-white/10
+                                                rounded-2xl
+                                                px-4 py-2
+                                                flex items-center gap-3
+                                                backdrop-blur-xl
+                                            "
+                                            >
+                                                <img
+                                                    src={`https://image.tmdb.org/t/p/w200${p.logo_path}`}
+                                                    className="w-6 h-6 rounded-full"
+                                                />
+
+                                                <span className="text-sm font-medium">
+                                                    {p.provider_name}
+                                                </span>
+                                            </motion.div>
+                                        ))}
+
+                                    </div>
+
+                                </div>
+                            )}
+
+                        </motion.div>
                     </div>
-                </motion.div>
 
-            </div>
-
-            {showEmailModal && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
+                    {/* CAST */}
                     <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white rounded-2xl p-6 w-[350px] shadow-xl"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="
+                        bg-white/5
+                        border border-white/10
+                        rounded-3xl
+                        p-8
+                        backdrop-blur-xl
+                        shadow-2xl
+                    "
                     >
-
-                        <h2 className="text-lg font-semibold mb-4">
-                            Send movie 🎬
+                        <h2 className="text-3xl font-bold mb-8">
+                            {isTranslated && t
+                                ? t.labels.cast
+                                : "Main Cast"}
                         </h2>
 
-                        <input
-                            placeholder="Enter email..."
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="border px-3 py-2 rounded-lg w-full mb-4"
-                        />
+                        <div className="flex gap-5 overflow-x-auto pb-3">
 
-                        <div className="flex gap-2 justify-end">
+                            {cast.map((actor: any) => (
+                                <motion.div
+                                    key={actor.id}
+                                    whileHover={{
+                                        scale: 1.05,
+                                        y: -5,
+                                    }}
+                                    className="
+                                    min-w-[150px]
+                                    bg-white/5
+                                    border border-white/10
+                                    rounded-2xl
+                                    overflow-hidden
+                                    backdrop-blur-xl
+                                "
+                                >
+                                    <img
+                                        src={
+                                            actor.profile_path
+                                                ? `https://image.tmdb.org/t/p/w300${actor.profile_path}`
+                                                : "https://via.placeholder.com/150"
+                                        }
+                                        className="
+                                        w-full
+                                        h-[210px]
+                                        object-cover
+                                    "
+                                    />
 
-                            <button
-                                onClick={() => setShowEmailModal(false)}
-                                className="px-3 py-2 text-sm bg-gray-200 rounded-lg"
-                            >
-                                Cancel
-                            </button>
-
-                            <ActionButton
-                                icon={<Mail size={16} />}
-                                variant="primary"
-                                onClick={async () => {
-                                    await handleSend();
-                                    setShowEmailModal(false);
-                                }}
-                                loading={sending}
-                            >
-                                Send
-                            </ActionButton>
+                                    <div className="p-3">
+                                        <p className="
+                                        text-sm
+                                        font-semibold
+                                        text-center
+                                    ">
+                                            {actor.name}
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            ))}
 
                         </div>
-
                     </motion.div>
+
                 </div>
-            )}
+            </div>
+
+            {/* EMAIL MODAL */}
+            <AnimatePresence>
+                {showEmailModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="
+                        fixed inset-0 z-50
+                        bg-black/70
+                        backdrop-blur-md
+                        flex items-center justify-center
+                    "
+                    >
+
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="
+                            w-[380px]
+                            bg-[#111]
+                            border border-white/10
+                            rounded-3xl
+                            p-6
+                            shadow-2xl
+                        "
+                        >
+
+                            <h2 className="text-2xl font-bold mb-5">
+                                Send movie 🎬
+                            </h2>
+
+                            <input
+                                placeholder="Enter email..."
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="
+                                w-full
+                                bg-white/5
+                                border border-white/10
+                                rounded-2xl
+                                px-4 py-3
+                                outline-none
+                                mb-5
+                            "
+                            />
+
+                            <div className="flex justify-end gap-3">
+
+                                <button
+                                    onClick={() =>
+                                        setShowEmailModal(false)
+                                    }
+                                    className="
+                                    px-4 py-2 rounded-xl
+                                    bg-white/10
+                                    hover:bg-white/20
+                                    transition-all
+                                "
+                                >
+                                    Cancel
+                                </button>
+
+                                <ActionButton
+                                    icon={<Mail size={16} />}
+                                    variant="primary"
+                                    onClick={async () => {
+                                        await handleSend();
+                                        setShowEmailModal(false);
+                                    }}
+                                    loading={sending}
+                                >
+                                    Send
+                                </ActionButton>
+
+                            </div>
+
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

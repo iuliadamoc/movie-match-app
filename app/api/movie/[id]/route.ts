@@ -26,7 +26,7 @@ export async function GET(
 
   return Response.json({
     movie,
-    cast: castData.cast.slice(0, 5), // top 5 cast members
+    cast: castData.cast.slice(0, 7), // top 7 cast members
     providers
   });
   
