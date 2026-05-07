@@ -52,7 +52,7 @@ export default function Navbar({ user }: any) {
           onClick={() => router.push("/account")}
           className="text-sm text-gray-600 cursor-pointer hover:text-black transition"
         >
-          {name || user.email}
+          {"Account"}
         </span>
 
         <button onClick={() => router.push("/favorites")}>
