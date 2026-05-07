@@ -8,6 +8,13 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { toast } from "react-toastify";
 
+import { db } from "@/lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
+
+import { Heart } from "lucide-react";
+import { addFavorite, removeFavorite, checkFavorite } from "@/lib/favorites";
+import { AnimatePresence } from "framer-motion";
+
 import ActionButton from "@/components/ui/ActionButton";
 import { Mail, Globe } from "lucide-react";
 
@@ -30,6 +37,10 @@ export default function MoviePage() {
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
+
+    const [isFav, setIsFav] = useState(false);
+    const [favId, setFavId] = useState<string | null>(null);
+    const [initialAnimDone, setInitialAnimDone] = useState(false);
 
     // AUTH
     useEffect(() => {
@@ -68,6 +79,27 @@ export default function MoviePage() {
             handleTranslate();
         }
     }, [data, language]);
+
+    // CHECK IF FAVORITE
+    useEffect(() => {
+        if (!user || !data?.movie) return;
+
+        const check = async () => {
+            const id = await checkFavorite(user.uid, data.movie.id);
+
+            if (id) {
+                setIsFav(true);
+                setFavId(id);
+
+                // 💥 trigger animație la load
+                setTimeout(() => {
+                    setInitialAnimDone(true);
+                }, 100);
+            }
+        };
+
+        check();
+    }, [user, data]);
 
     // CHANGE LANGUAGE
     const handleLanguageChange = (lang: string) => {
@@ -137,6 +169,27 @@ export default function MoviePage() {
         }
 
         setLoadingTranslate(false);
+    };
+
+    const handleFavorite = async () => {
+        if (!user) return;
+
+        try {
+            if (isFav && favId) {
+                await removeFavorite(favId);
+                setIsFav(false);
+                setFavId(null);
+                // toast.info("Removed from favorites");
+            } else {
+                const docRef = await addFavorite(user, movie);
+                setIsFav(true);
+                setFavId(docRef.id);
+                // toast.success("Added to favorites ❤️");
+            }
+        } catch (err) {
+            console.log(err);
+            toast.error("Error");
+        }
     };
 
     // LOADING
@@ -214,9 +267,56 @@ export default function MoviePage() {
 
                         {/* TITLE */}
                         <div>
-                            <h1 className="text-3xl font-bold">
-                                {isTranslated && t ? t.title : movie.title}
-                            </h1>
+                            <div className="flex items-center gap-3">
+                                <h1 className="text-3xl font-bold">
+                                    {isTranslated && t ? t.title : movie.title}
+                                </h1>
+
+                                <div className="relative group">
+
+                                    <motion.button
+                                        onClick={handleFavorite}
+                                        whileTap={{ scale: 0.85 }}
+                                        whileHover={{ scale: 1.1 }}
+                                        className="p-1"
+                                    >
+                                        <motion.div
+                                            animate={{
+                                                scale:
+                                                    isFav && !initialAnimDone
+                                                        ? [1, 1.4, 1] //  anim la load
+                                                        : isFav
+                                                            ? [1, 1.25, 1]
+                                                            : 1,
+                                            }}
+                                            transition={{ duration: 0.4 }}
+                                        >
+                                            <Heart
+                                                size={20}
+                                                className={`transition ${isFav
+                                                        ? "text-red-500 drop-shadow-[0_0_6px_rgba(239,68,68,0.6)]"
+                                                        : "text-gray-400 group-hover:text-red-400"
+                                                    }`}
+                                                fill={isFav ? "currentColor" : "none"}
+                                            />
+                                        </motion.div>
+                                    </motion.button>
+
+                                    {/* TOOLTIP */}
+                                    <div className="
+                                            absolute -top-9 left-1/2 -translate-x-1/2
+                                            bg-black text-white text-xs px-2 py-1 rounded-md
+                                            opacity-0 group-hover:opacity-100
+                                            translate-y-2 group-hover:translate-y-0
+                                            transition-all duration-200
+                                            pointer-events-none
+                                            whitespace-nowrap
+                                        ">
+                                        {isFav ? "Remove from favorites" : "Add to favorites"}
+                                    </div>
+
+                                </div>
+                            </div>
 
                             <p className="text-gray-500 text-sm mt-1">
                                 {movie.release_date?.slice(0, 4)} •{" "}

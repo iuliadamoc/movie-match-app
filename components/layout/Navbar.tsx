@@ -32,6 +32,10 @@ export default function Navbar({ user }: any) {
           {user.email}
         </span>
 
+        <button onClick={() => router.push("/favorites")}>
+          Favorites
+        </button>
+
         <motion.button
           onClick={() => signOut(auth)}
           whileHover={{ scale: 1.05, backgroundColor: "#e00" }}
