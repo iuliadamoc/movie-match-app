@@ -128,12 +128,10 @@ Prompt: ${prompt}
 const scoredMovies = movies.map((movie: any) => {
   let score = 0;
 
-  // gen bun?
   if (movie.genre_ids.some((g: number) => includeGenres.includes(g))) {
     score += 40;
   }
 
-  // keywords in descriere
   const overview = movie.overview.toLowerCase();
 
   const matches = keywords.filter((k: string) =>
@@ -142,10 +140,8 @@ const scoredMovies = movies.map((movie: any) => {
 
   score += Math.min(30, matches * 10);
 
-  // rating
   score += movie.vote_average * 2;
 
-  // gen interzis?
   if (movie.genre_ids.some((g: number) => excludeGenres.includes(g))) {
     score -= 50;
   }
