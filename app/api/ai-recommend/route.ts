@@ -5,23 +5,22 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-const genreMap: any = {
-    Action: 28,
-    Adventure: 12,
-    Animation: 16,
-    Comedy: 35,
-    Crime: 80,
-    Documentary: 99,
-    Drama: 18,
-    Family: 10751,
-    Fantasy: 14,
-    History: 36,
+const moodToGenres: any = {
+    Romantic: [10749, 18], // Romance + Drama
+    Funny: [35],
+    Emotional: [18],
+    Dark: [53, 9648], // Thriller + Mystery
+    Mindblowing: [878, 12],
+    Cozy: [10751, 35],
+    "Sci-Fi": [878],
+    Adventurous: [12, 28],
+};
+
+const avoidToGenres: any = {
     Horror: 27,
-    Music: 10402,
-    Mystery: 9648,
-    Romance: 10749,
-    "Science Fiction": 878,
-    Thriller: 53,
+    Violence: 28,
+    Gore: 27,
+    "Too Emotional": 18,
 };
 
 export async function POST(req: Request) {
@@ -35,207 +34,167 @@ export async function POST(req: Request) {
             favoriteGenres = [],
         } = body;
 
-        // AI ANALYSIS
-        const completion =
-            await openai.chat.completions.create({
-                model: "gpt-4.1-mini",
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4.1-mini",
+            messages: [
+                {
+                    role: "system",
+                    content: `
+You analyze a movie vibe.
 
-                messages: [
-                    {
-                        role: "system",
-
-                        content: `
-You are an advanced cinematic recommendation AI.
-
-Analyze the user's vibe deeply.
-
-Choose genres based on:
-- mood
-- atmosphere
-- pacing
-- emotions
-- avoid preferences
-- prompt context
-
-Avoid generic repetitive recommendations.
-
-Return ONLY valid JSON.
-
-Format:
+Return ONLY JSON:
 {
-  "genres": ["Drama", "Mystery"],
-  "keywords": ["rainy", "emotional", "slowburn"],
-  "tone": "melancholic"
+  "keywords": ["love", "relationship"],
+  "tone": "romantic"
 }
-`,
-                    },
+          `,
+                },
+                {
+                    role: "user",
+                    content: `
+Mood: ${mood}
+Avoid: ${avoid?.join(", ")}
+Prompt: ${prompt}
+          `,
+                },
+            ],
+            temperature: 0.7,
+        });
 
-                    {
-                        role: "user",
-
-                        content: `
-Mood:
-${mood}
-
-Avoid:
-${avoid?.join(", ")}
-
-Prompt:
-${prompt}
-
-Favorite genres:
-${favoriteGenres.join(", ")}
-`,
-                    },
-                ],
-
-                temperature: 1,
-            });
-
-        const aiText =
-            completion.choices[0].message.content || "{}";
-
-        let parsed: any = {};
+        let aiParsed: any = {};
 
         try {
-            parsed = JSON.parse(aiText);
-        } catch {
-            return NextResponse.json(
-                {
-                    error: "AI parsing failed",
-                    raw: aiText,
-                },
-                { status: 500 }
+            aiParsed = JSON.parse(
+                completion.choices[0].message.content || "{}"
             );
+        } catch {
+            aiParsed = {};
         }
 
-        // FALLBACK GENRES
-        const genres =
-            parsed.genres?.length
-                ? parsed.genres
-                : ["Drama", "Thriller"];
+        const includeGenres = moodToGenres[mood] || [18];
 
-        const genreIds = genres
-            .map((g: string) => genreMap[g])
-            .filter(Boolean)
-            .join(",");
+        const excludeGenres =
+            avoid
+                ?.map((a: string) => avoidToGenres[a])
+                .filter(Boolean) || [];
 
-        // RANDOMIZATION
-        const randomPage =
-            Math.floor(Math.random() * 5) + 1;
-
-        const randomYear =
-            [2000, 2005, 2010, 2015][
-            Math.floor(Math.random() * 4)
-            ];
-
-        // TMDB URL
         const url =
             `https://api.themoviedb.org/3/discover/movie` +
             `?api_key=${process.env.TMDB_API_KEY}` +
-            `&with_genres=${genreIds}` +
-            `&sort_by=popularity.desc` +
-            `&vote_average.gte=6` +
-            `&vote_count.gte=50` +
-            `&page=${randomPage}`;
+            `&with_genres=${includeGenres.join(",")}` +
+            `&without_genres=${excludeGenres.join(",")}` +
+            `&sort_by=vote_average.desc` +
+            `&vote_average.gte=6.5` +
+            `&vote_count.gte=200` +
+            `&page=${Math.floor(Math.random() * 5) + 1}`;
 
         const tmdbRes = await fetch(url);
-
         const tmdbData = await tmdbRes.json();
 
-        console.log("TMDB URL:", url);
-        console.log("TMDB RESULTS:", tmdbData.results?.length);
-
         let movies =
-            tmdbData.results?.filter(
-                (m: any) =>
-                    m.poster_path &&
-                    m.overview &&
-                    m.vote_average >= 6.5
-            ) || [];
+            tmdbData.results?.filter((m: any) => {
+                if (!m.poster_path || !m.overview) return false;
+
+                if (excludeGenres.length > 0) {
+                    const hasBad = m.genre_ids?.some((id: number) =>
+                        excludeGenres.includes(id)
+                    );
+                    if (hasBad) return false;
+                }
+
+                return true;
+            }) || [];
+
+        if (mood === "Romantic") {
+            movies = movies.filter((m: any) =>
+                m.genre_ids.includes(10749)
+            );
+        }
 
         if (!movies.length) {
-            console.log("USING FALLBACK");
-
             const fallbackRes = await fetch(
                 `https://api.themoviedb.org/3/movie/popular?api_key=${process.env.TMDB_API_KEY}`
             );
 
-            const fallbackData =
-                await fallbackRes.json();
+            const fallbackData = await fallbackRes.json();
 
-            movies =
-                fallbackData.results?.slice(0, 6) || [];
+            movies = fallbackData.results?.slice(0, 6) || [];
         }
 
-        // RANDOMIZE AGAIN
-        movies = movies
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 6);
+        const keywords = (aiParsed.keywords || []).map((k: string) =>
+  k.toLowerCase()
+);
 
-        // MOVIE TITLES
-        const movieTitles = movies
-            .map((m: any) => m.title)
-            .join(", ");
+const scoredMovies = movies.map((movie: any) => {
+  let score = 0;
 
-        // AI EXPLANATIONS
+  // gen bun?
+  if (movie.genre_ids.some((g: number) => includeGenres.includes(g))) {
+    score += 40;
+  }
+
+  // keywords in descriere
+  const overview = movie.overview.toLowerCase();
+
+  const matches = keywords.filter((k: string) =>
+    overview.includes(k)
+  ).length;
+
+  score += Math.min(30, matches * 10);
+
+  // rating
+  score += movie.vote_average * 2;
+
+  // gen interzis?
+  if (movie.genre_ids.some((g: number) => excludeGenres.includes(g))) {
+    score -= 50;
+  }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+
+  return {
+    ...movie,
+    matchScore: score,
+  };
+});
+
+        movies = scoredMovies
+  .sort((a: any, b: any) => b.matchScore - a.matchScore)
+  .slice(0, 6);
+
+        const titles = movies.map((m: any) => m.title).join(", ");
+
         const explanationCompletion =
             await openai.chat.completions.create({
                 model: "gpt-4.1-mini",
-
                 messages: [
                     {
                         role: "system",
-
                         content: `
-You are a cinematic AI assistant.
+                            Return ONLY JSON array:
 
-Return ONLY valid JSON array.
-
-Example:
-[
-  {
-    "title": "Interstellar",
-    "explanation": "A visually stunning emotional sci-fi journey."
-  }
-]
-
-Keep explanations:
-- short
-- cinematic
-- personalized
-- emotional
-`,
+                            [
+                            { "title": "Movie", "explanation": "short cinematic explanation" }
+                            ]
+                                        `,
                     },
-
                     {
                         role: "user",
-
                         content: `
-User mood:
-${mood}
-
-Avoid:
-${avoid?.join(", ")}
-
-Prompt:
-${prompt}
-
-Movies:
-${movieTitles}
-`,
+                            Mood: ${mood}
+                            Prompt: ${prompt}
+                            Movies: ${titles}
+                                        `,
                     },
                 ],
-
-                temperature: 0.9,
+                temperature: 0.8,
             });
 
         let explanations: any[] = [];
 
         try {
             const raw =
-                explanationCompletion.choices[0]
-                    .message.content || "[]";
+                explanationCompletion.choices[0].message.content || "[]";
 
             const cleaned = raw
                 .replace(/```json/g, "")
@@ -243,56 +202,34 @@ ${movieTitles}
                 .trim();
 
             explanations = JSON.parse(cleaned);
-
-            if (!Array.isArray(explanations)) {
-                explanations =
-                    (explanations as any).movies || [];
-            }
-
-            console.log(
-                "AI EXPLANATIONS:",
-                explanations
-            );
-
-        } catch (err) {
-            console.log(
-                "EXPLANATION PARSE ERROR:",
-                err
-            );
-
+        } catch {
             explanations = [];
         }
 
-        // FINAL FORMAT
-        const formattedMovies = movies.map(
-            (movie: any) => {
-                const aiExplanation =
-                    explanations.find(
-                        (e: any) =>
-                            e.title === movie.title
-                    );
+        const formattedMovies = movies.map((movie: any) => {
+            const aiExplanation = explanations.find(
+                (e: any) => e.title === movie.title
+            );
 
-                return {
-                    ...movie,
-
-                    aiExplanation:
-                        aiExplanation?.explanation ||
-                        "A perfect match for your current vibe.",
-                };
-            }
-        );
+            return {
+                ...movie,
+                matchScore: movie.matchScore,
+                aiExplanation:
+                    aiExplanation?.explanation ||
+                    "A perfect match for your current vibe.",
+            };
+        });
 
         return NextResponse.json({
-            ai: parsed,
+            ai: aiParsed,
             movies: formattedMovies,
         });
+
     } catch (error) {
         console.error(error);
 
         return NextResponse.json(
-            {
-                error: "Something went wrong",
-            },
+            { error: "Something went wrong" },
             { status: 500 }
         );
     }

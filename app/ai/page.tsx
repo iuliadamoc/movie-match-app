@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import {
@@ -9,6 +9,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 
 const moods = [
   "Cozy",
@@ -36,6 +37,7 @@ export default function AIPage() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [movies, setMovies] = useState<any[]>([]);
+  const router = useRouter();
 
   const toggleAvoid = (item: string) => {
     if (selectedAvoid.includes(item)) {
@@ -66,36 +68,41 @@ export default function AIPage() {
 
       console.log("AI RESPONSE:", data);
 
-if (!data.movies || !Array.isArray(data.movies)) {
-  console.log("NO MOVIES RETURNED");
+      if (!data.movies || !Array.isArray(data.movies)) {
+        console.log("NO MOVIES RETURNED");
 
-  setMovies([]);
+        setMovies([]);
 
-  return;
-}
+        return;
+      }
 
-const formattedMovies = data.movies.map(
-  (movie: any) => ({
-    id: movie.id,
+      const formattedMovies = data.movies.map(
+        (movie: any) => ({
+          id: movie.id,
 
-    title: movie.title,
+          title: movie.title,
 
-    year:
-      movie.release_date?.split("-")[0],
+          year:
+            movie.release_date?.split("-")[0],
 
-    score: `${Math.round(
-      movie.vote_average * 10
-    )}%`,
+          score: `${Math.round(
+            movie.vote_average * 10
+          )}%`,
 
-    image:
-      `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+          image:
+            `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
 
-    explanation:
-      movie.aiExplanation,
-  })
-);
+          explanation:
+            movie.aiExplanation,
+        })
+      );
 
-setMovies(formattedMovies);
+      setMovies(formattedMovies);
+
+      sessionStorage.setItem(
+        "ai_last_results",
+        JSON.stringify(formattedMovies)
+      );
 
       // SAVE FIREBASE HISTORY
       await addDoc(collection(db, "ai_history"), {
@@ -112,6 +119,20 @@ setMovies(formattedMovies);
       setLoading(false);
     }
   };
+
+useEffect(() => {
+  const fromAI = sessionStorage.getItem("fromAI");
+
+  if (fromAI === "true") {
+    const saved = sessionStorage.getItem("ai_last_results");
+
+    if (saved) {
+      setMovies(JSON.parse(saved));
+    }
+
+    sessionStorage.removeItem("fromAI");
+  }
+}, []);
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
@@ -154,11 +175,10 @@ setMovies(formattedMovies);
                   <button
                     key={mood}
                     onClick={() => setSelectedMood(mood)}
-                    className={`px-4 py-2 rounded-full transition-all duration-300 border ${
-                      selectedMood === mood
+                    className={`px-4 py-2 rounded-full transition-all duration-300 border ${selectedMood === mood
                         ? "bg-white text-black border-white scale-105"
                         : "bg-white/5 border-white/10 hover:bg-white/10"
-                    }`}
+                      }`}
                   >
                     {mood}
                   </button>
@@ -176,11 +196,10 @@ setMovies(formattedMovies);
                   <button
                     key={item}
                     onClick={() => toggleAvoid(item)}
-                    className={`px-4 py-2 rounded-full transition-all duration-300 border ${
-                      selectedAvoid.includes(item)
+                    className={`px-4 py-2 rounded-full transition-all duration-300 border ${selectedAvoid.includes(item)
                         ? "bg-red-500/20 border-red-400 text-red-300"
                         : "bg-white/5 border-white/10 hover:bg-white/10"
-                    }`}
+                      }`}
                   >
                     {item}
                   </button>
@@ -293,9 +312,9 @@ setMovies(formattedMovies);
                           {movie.title}
                         </h2>
 
-                        <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap">
+                        {/* <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap">
                           ✨ {movie.score} Match
-                        </div>
+                        </div> */}
                       </div>
 
                       <p className="text-gray-400 mt-1">
@@ -306,7 +325,13 @@ setMovies(formattedMovies);
                         {movie.explanation}
                       </p>
 
-                      <button className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-500 hover:opacity-90 transition-all font-semibold">
+                      <button
+                        onClick={() => {
+                          sessionStorage.setItem("fromAI", "true");
+                          router.push(`/movie/${movie.id}`);
+                        }}
+                        className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-500 hover:opacity-90 transition-all font-semibold"
+                      >
                         View Details
                       </button>
                     </div>
