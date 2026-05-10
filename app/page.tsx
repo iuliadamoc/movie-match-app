@@ -41,7 +41,7 @@ export default function Home() {
     show: { opacity: 1, y: 0 },
   };
 
-  // 🔐 AUTH
+  // AUTH
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       if (!u) router.push("/login");
@@ -50,7 +50,7 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // 🔍 debounce search
+  // debounce search
   useEffect(() => {
     const timeout = setTimeout(() => {
       setDebouncedSearch(search);
@@ -60,7 +60,7 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, [search]);
 
-  // 🎬 FETCH MOVIES
+  // FETCH MOVIES
   useEffect(() => {
     const url =
       `/api/movies?page=${page}&sort=${sort}` +
@@ -78,7 +78,7 @@ export default function Home() {
       });
   }, [page, sort, provider, selectedGenre, debouncedSearch]);
 
-  // 🎭 GENRES
+  // GENRES
   useEffect(() => {
     fetch("/api/genres")
       .then((res) => res.json())

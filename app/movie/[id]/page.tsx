@@ -91,7 +91,7 @@ export default function MoviePage() {
                 setIsFav(true);
                 setFavId(id);
 
-                // 💥 trigger animație la load
+                // trigger animație la load
                 setTimeout(() => {
                     setInitialAnimDone(true);
                 }, 100);
@@ -117,7 +117,7 @@ export default function MoviePage() {
 
         localStorage.setItem("recent", JSON.stringify(updated));
 
-        console.log("RECENT SAVED:", updated); // 🔍 DEBUG
+        console.log("RECENT SAVED:", updated); // DEBUG
     }, [data]);
 
     // CHANGE LANGUAGE
