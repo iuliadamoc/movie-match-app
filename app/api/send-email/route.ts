@@ -7,6 +7,8 @@ export async function POST(req: Request) {
     try {
         const { email, movie } = await req.json();
 
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
         if (!email || !movie) {
             return Response.json({ error: "Missing data" }, { status: 400 });
         }
@@ -42,7 +44,7 @@ export async function POST(req: Request) {
 
         <!-- BUTTON -->
         <a 
-          href="http://localhost:3000/movie/${movie.id}"
+          href="${baseUrl}/movie/${movie.id}"
           style="
             display:inline-block;
             margin-top:20px;
